@@ -1,30 +1,28 @@
 {
   "name": "shelf-watch",
-  "version": "0.1.0",
   "private": true,
+  "workspaces": [
+    "shelf-shared",
+    "shelf-api",
+    "shelf-web-client"
+  ],
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint"
+    "build:shared": "npm run build -w @shelf-watch/shared",
+    "dev:shared": "npm run dev -w @shelf-watch/shared",
+    "dev:api": "npm run dev -w shelf-api",
+    "dev:web": "npm run dev -w shelf-web-client",
+    "build": "npm run build -w shelf-api && npm run build -w shelf-web-client",
+    "test": "npm run test -w shelf-api",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "db:migrate": "npm run db:migrate -w shelf-api",
+    "db:seed": "npm run db:seed -w shelf-api",
+    "db:reset": "npm run db:reset -w shelf-api"
   },
-  "dependencies": {
-    "@prisma/adapter-better-sqlite3": "^7.9.1",
-    "@prisma/client": "^7.9.1",
-    "next": "16.3.0",
-    "prisma": "^7.9.1",
-    "react": "19.2.8",
-    "react-dom": "19.2.8"
-  },
-  "devDependencies": {
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "dotenv": "^17.4.2",
-    "eslint": "^9",
-    "eslint-config-next": "16.3.0",
-    "tailwindcss": "^4",
-    "typescript": "^5"
+  "overridesNote": "drizzle-kit depends on the abandoned @esbuild-kit/* packages, which pin an esbuild with a dev-server advisory (GHSA-67mh-4wv8-2f99). No drizzle-kit release has dropped them. Forcing a patched esbuild dedupes the nested copy away and clears the advisory. Do NOT run `npm audit fix --force` instead: it downgrades drizzle-kit 0.31 -> 0.18.",
+  "overrides": {
+    "@esbuild-kit/core-utils": {
+      "esbuild": "^0.25.10"
+    }
   }
 }

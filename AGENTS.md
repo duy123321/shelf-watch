@@ -22,6 +22,8 @@ Three npm workspaces under a thin root. **Run `npm install` from the repo root**
 
 **Drizzle wraps driver errors.** A Postgres error code lives on `err.cause.code`, not `err.code`. See `isUniqueViolation` in the users route.
 
+**The web client uses Tailwind v4 + shadcn/ui.** Add components with `npx shadcn@latest add <name>` from `shelf-web-client`; they land in `src/components/ui` and import through the `@/` alias (declared in both `vite.config.ts` and `tsconfig.app.json` — keep the two in sync). Tailwind is configured CSS-first in `src/index.css`; there is no `tailwind.config.js`. The shadcn tokens there are named `--border-token`/`--accent-token`/`--muted-token` because the pre-shadcn pages (`Shelf`, `NotFound`) still use the hand-rolled `--border`/`--accent`/`--muted` variables further down the same file. Do not collapse the two sets until those pages are ported.
+
 ## API contract — do not break
 
 - `countsByStatus` always has all four statuses; a status with no rows is `0`, never absent.

@@ -94,7 +94,7 @@ shelf-watch/
 
 ### Why the workspace root exists
 
-Purely so `@shelf-watch/shared` is importable from both projects without publishing it to a registry. npm symlinks `shelf-shared/` into each project's `node_modules/@shelf-watch/`. The two projects otherwise stay independent — separate frameworks, separate configs, separately deployable.
+Purely so `@shelf-watch/shared` is importable from both projects without publishing it to a registry. npm symlinks `shelf-shared/` into `node_modules/@shelf-watch/shared` at the repo root, where Node's upward module resolution finds it from either project. The two projects otherwise stay independent — separate frameworks, separate configs, separately deployable.
 
 The tradeoff: one lockfile shared by all three, and platform builds install everything. See [Deployment](#deployment).
 

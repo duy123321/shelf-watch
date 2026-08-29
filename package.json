@@ -18,5 +18,11 @@
     "db:migrate": "npm run db:migrate -w shelf-api",
     "db:seed": "npm run db:seed -w shelf-api",
     "db:reset": "npm run db:reset -w shelf-api"
+  },
+  "overridesNote": "drizzle-kit depends on the abandoned @esbuild-kit/* packages, which pin an esbuild with a dev-server advisory (GHSA-67mh-4wv8-2f99). No drizzle-kit release has dropped them. Forcing a patched esbuild dedupes the nested copy away and clears the advisory. Do NOT run `npm audit fix --force` instead: it downgrades drizzle-kit 0.31 -> 0.18.",
+  "overrides": {
+    "@esbuild-kit/core-utils": {
+      "esbuild": "^0.25.10"
+    }
   }
 }

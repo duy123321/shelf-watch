@@ -37,3 +37,9 @@ npm run build && npm test
 ```
 
 Tests need Postgres running (`npm run db:up`) and the seed data (`npm run db:reset`).
+
+## Dependency overrides
+
+The root `package.json` pins a patched `esbuild` inside `@esbuild-kit/core-utils`. `drizzle-kit` still depends on those abandoned packages and no release has dropped them.
+
+**Never run `npm audit fix --force` here.** It "fixes" that advisory by downgrading `drizzle-kit` from 0.31 to 0.18, which breaks migration generation. The override clears the advisory without the downgrade; `npm audit` reports zero vulnerabilities.

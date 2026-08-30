@@ -8,6 +8,20 @@
       "when": 1786496778601,
       "tag": "0000_robust_molly_hayes",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1788062232029,
+      "tag": "0001_snake_case_naming",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1788062340755,
+      "tag": "0002_users_plural",
+      "breakpoints": true
     }
   ]
 }

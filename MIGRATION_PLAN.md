@@ -231,6 +231,8 @@ enum ReadStatus = TBR | READING | FINISHED | DNF
 
 ### 2.2 Identifier naming — do not "fix" this
 
+> **Superseded.** This section is kept for historical context on the original port decision. The rename it argued against did happen — `drizzle/0001_snake_case_naming.sql` and `drizzle/0002_users_plural.sql` moved every table and column to lowercase snake_case (`users`, `book`, `user_read`, `profile_picture`, ...) via `ALTER ... RENAME`, once the port itself was stable and the data-export script's one-time job was long done. See `AGENTS.md` for the identifier naming that's actually current.
+
 Prisma created **PascalCase table names** and **camelCase column names**. In Postgres these require double-quoting forever, because unquoted identifiers fold to lowercase. Drizzle quotes all identifiers it emits, so this works — but every table and column must be given its name **explicitly** in the schema. Never rely on Drizzle inferring a name from the TS property.
 
 Renaming to `snake_case` is the conventional Postgres choice, but it invalidates the data-export script in §3 and every hand-written SQL query. Keep the Prisma names. This is a port, not a redesign.

@@ -18,7 +18,7 @@ Three npm workspaces under a thin root. **Run `npm install` from the repo root**
 
 **Imports in `shelf-api` carry `.js` extensions even in `.ts` source.** That is NodeNext resolution, not a mistake. `vitest.config.ts` has an alias that strips them for the test run, plus `@fastify/autoload` inlined so its dynamic imports go through the same resolver.
 
-**Table and column names are quoted PascalCase/camelCase** (`"User"`, `"UserRead"`, `"profilePicture"`), inherited from the original Prisma schema. Do not "fix" them to snake_case, and do not add a `casing` option to `drizzle.config.ts` — it only accepts `snake_case`/`camelCase` and either would rewrite them.
+**Table and column names are plain lowercase snake_case** (`users`, `user_read`, `profile_picture`) — no quoting needed in raw SQL. They originally inherited quoted PascalCase/camelCase from the original Prisma schema; `drizzle/0001_snake_case_naming.sql` and `drizzle/0002_users_plural.sql` renamed both the tables/columns and the enum type via `ALTER ... RENAME`, not a drop+recreate, so existing rows and ids survived. `User` became `users`, not `user` — `user` collides with a Postgres reserved word (`SELECT * FROM user` silently returns the connected role, no error) — so it's plural like the others rather than singular. TS property names on the Drizzle tables are still camelCase (`userId`, `profilePicture`) — only the SQL-facing identifiers changed, so calling code was untouched. There is still no `casing` option on `drizzle.config.ts`; every identifier is named explicitly in `schema.ts`, matching how it always worked here.
 
 **Drizzle wraps driver errors.** A Postgres error code lives on `err.cause.code`, not `err.code`. See `isUniqueViolation` in the users route.
 

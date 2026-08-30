@@ -6,8 +6,8 @@ export default defineConfig({
   out: "./drizzle",
   dialect: "postgresql",
   dbCredentials: { url: process.env.DATABASE_URL! },
-  // No `casing` option on purpose. It only accepts "snake_case" | "camelCase",
-  // and both would rewrite the identifiers. Every table and column name is
-  // given explicitly in src/db/schema.ts, which preserves the quoted
-  // PascalCase/camelCase names Prisma created.
+  // No `casing` option. Every table and column name is given explicitly in
+  // src/db/schema.ts instead — including through the snake_case rename in
+  // drizzle/0001_snake_case_naming.sql and 0002_users_plural.sql — so this
+  // option would have nothing to do and no reason to be turned on.
 });

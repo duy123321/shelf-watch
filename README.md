@@ -118,7 +118,7 @@ Run these from the repo root.
 | `npm run db:seed`      | Seed fixtures (idempotent)                              |
 | `npm run db:reset`     | Drop everything, migrate, reseed                        |
 
-Inside `shelf-api/` there is also `npm run db:generate` (write a new migration after changing `schema.ts`) and `npm run db:studio`.
+Inside `shelf-api/` there is also `npm run db:generate` (write a new migration after changing `schema.ts`) and `npm run db:studio` (see [Viewing the data](#viewing-the-data)).
 
 ---
 
@@ -189,7 +189,33 @@ Local Postgres runs in Docker (`docker-compose.yml`), exposed on `5432`:
 postgres://shelfwatch:shelfwatch@localhost:5432/shelfwatch
 ```
 
-Three tables — `User`, `Book`, `UserRead` — plus a `ReadStatus` enum type. Names are quoted PascalCase/camelCase, inherited from the original Prisma schema and deliberately preserved.
+Three tables — `users`, `book`, `user_read` — plus a `read_status` enum type. Plain lowercase snake_case, no quoting required in raw SQL. They originally inherited quoted PascalCase/camelCase names from the source Prisma schema; `drizzle/0001_snake_case_naming.sql` and `drizzle/0002_users_plural.sql` renamed everything via `ALTER ... RENAME` (not a drop+recreate), so existing rows and ids survived. It's `users`, not `user` — `user` is a Postgres reserved word, and `SELECT * FROM user` silently returns the connected role instead of erroring, so the table stays plural like the other two rather than singular. TS property names on the Drizzle side (`userId`, `profilePicture`, ...) are still camelCase — only the SQL-facing identifiers changed.
+
+### Viewing the data
+
+Drizzle Studio reads `drizzle.config.ts` and gives you a browsable UI:
+
+```bash
+npm run db:studio -w shelf-api
+```
+
+Then open **https://local.drizzle.studio**. The `-w shelf-api` is not optional: `db:studio` is the one `db:*` script the root `package.json` does not proxy, so plain `npm run db:studio` from the root fails. The UI is a page hosted by Drizzle that connects back to `127.0.0.1:4983` — your data never leaves the machine. It prints a Beta warning on every start; that is expected.
+
+Or use `psql`, already inside the container:
+
+```bash
+docker compose exec postgres psql -U shelfwatch -d shelfwatch
+```
+
+`\dt` lists the tables, `\d book` describes one, `\q` quits — no quoting needed for any identifier here.
+
+A one-off query without entering the shell:
+
+```bash
+docker compose exec -T postgres psql -U shelfwatch -d shelfwatch -c 'SELECT u.username, b.title, r.status FROM user_read r JOIN users u ON u.id = r.user_id JOIN book b ON b.id = r.book_id ORDER BY r.updated_at DESC;'
+```
+
+A GUI client (TablePlus, Postico, DBeaver) works too — host `localhost`, port `5432`, database `shelfwatch`, user `shelfwatch`, password in `shelf-api/.env`.
 
 Changing the schema:
 

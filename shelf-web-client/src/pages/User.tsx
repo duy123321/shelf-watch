@@ -1,6 +1,14 @@
-import type { ShelfBook, ShelfSummary, User as UserRecord } from "@shelf-watch/shared";
+import {
+  READ_STATUSES,
+  type ReadStatus,
+  type ShelfBook,
+  type ShelfSummary,
+  type StatusCounts,
+  type User as UserRecord,
+} from "@shelf-watch/shared";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router";
+import BookDialog from "../components/BookDialog";
 import BookGrid from "../components/BookGrid";
 import ProfileCard from "../components/ProfileCard";
 import StreakCard from "../components/StreakCard";
@@ -9,7 +17,22 @@ import {
   getShelfBooks,
   getShelfSummary,
   getUsers,
+  updateBookStatus,
 } from "../services/api";
+
+/**
+ * Recomputes the status tallies from the books already in hand, so the
+ * profile card stays in step with an edit without a second round trip.
+ * Seeded from READ_STATUSES so every status is present at zero, matching the
+ * API's own zero-fill guarantee.
+ */
+function countBooks(books: ShelfBook[]): StatusCounts {
+  const counts = Object.fromEntries(
+    READ_STATUSES.map((status) => [status, 0]),
+  ) as StatusCounts;
+  for (const book of books) counts[book.status] += 1;
+  return counts;
+}
 
 // The route carries a numeric id but every shelf endpoint is keyed by
 // username, so the id is resolved through /api/users first.
@@ -35,9 +58,35 @@ type Loaded = {
 export default function User() {
   const { userId = "" } = useParams<{ userId: string }>();
   const [data, setData] = useState<Loaded | null>(null);
+  const [selected, setSelected] = useState<ShelfBook | null>(null);
   const [status, setStatus] = useState<"loading" | "ready" | "missing" | "error">(
     "loading",
   );
+
+  /**
+   * Persists first, then updates local state from the row the API echoes back
+   * — no optimistic update, so a rejected change never briefly appears to have
+   * worked. Throwing propagates to the dialog, which shows the message inline.
+   */
+  async function handleSave(book: ShelfBook, next: ReadStatus) {
+    if (!data) return;
+
+    const saved = await updateBookStatus(data.user.username, book.id, next);
+
+    setData((current) => {
+      if (!current) return current;
+      const books = current.books.map((candidate) =>
+        candidate.id === saved.id ? saved : candidate,
+      );
+      return {
+        ...current,
+        books,
+        summary: { ...current.summary, countsByStatus: countBooks(books) },
+      };
+    });
+
+    setSelected(null);
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -92,9 +141,17 @@ export default function User() {
 
         <section>
           <h2 className="mb-4 text-lg font-semibold">Books</h2>
-          <BookGrid books={books} />
+          <BookGrid books={books} onSelect={setSelected} />
         </section>
       </main>
+
+      <BookDialog
+        book={selected}
+        onOpenChange={(open) => {
+          if (!open) setSelected(null);
+        }}
+        onSave={handleSave}
+      />
     </div>
   );
 }

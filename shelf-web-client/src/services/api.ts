@@ -1,6 +1,8 @@
 import type {
+  ReadStatus,
   ShelfBook,
   ShelfSummary,
+  UpdateReadStatusBody,
   User,
 } from "@shelf-watch/shared";
 
@@ -48,3 +50,24 @@ export const getShelfSummary = (username: string) =>
 
 export const getShelfBooks = (username: string) =>
   request<ShelfBook[]>(`/api/users/${encodeURIComponent(username)}/books`);
+
+/**
+ * Moves one book on a shelf to a different read status.
+ *
+ * NOTE: the API route this calls does not exist yet — it 404s until
+ * `PATCH /api/users/:username/books/:bookId` is implemented. The dialog
+ * surfaces the failure inline rather than pretending the change stuck, so
+ * this is safe to ship ahead of the endpoint.
+ */
+export const updateBookStatus = (
+  username: string,
+  bookId: number,
+  status: ReadStatus,
+) =>
+  request<ShelfBook>(
+    `/api/users/${encodeURIComponent(username)}/books/${bookId}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify({ status } satisfies UpdateReadStatusBody),
+    },
+  );

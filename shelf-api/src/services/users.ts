@@ -122,6 +122,10 @@ export async function getUserShelf(username: string): Promise<Shelf | null> {
       title: books.title,
       author: books.author,
       status: userReads.status,
+      // book.default_cover, not user_read.cover. The per-user column is an
+      // override for "which edition's jacket do I see", which nothing sets
+      // yet; the book-level column is what `npm run db:covers` fills in.
+      cover: books.defaultCover,
     })
     .from(userReads)
     .innerJoin(books, eq(userReads.bookId, books.id))
@@ -138,6 +142,8 @@ export async function getUserShelf(username: string): Promise<Shelf | null> {
     title: row.title,
     author: row.author,
     status: row.status,
+    // The column is NOT NULL, so "no cover" arrives as an empty string.
+    cover: row.cover || null,
   }));
 
   return {

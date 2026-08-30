@@ -42,6 +42,19 @@ export type ShelfBook = {
   title: string;
   author: string;
   status: ReadStatus;
+  /**
+   * Absolute URL of the book's cover, or `null` when there is no art for it.
+   *
+   * Comes from `book.default_cover`, which `npm run db:covers` fills in from
+   * Open Library. An empty column is normalised to `null` here so the client
+   * has one thing to check rather than two.
+   */
+  cover: string | null;
+};
+
+/** Body of `PATCH /api/users/:username/books/:bookId`. */
+export type UpdateReadStatusBody = {
+  status: ReadStatus;
 };
 
 export type Shelf = ShelfSummary & {

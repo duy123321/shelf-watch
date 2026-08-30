@@ -24,6 +24,8 @@ Three npm workspaces under a thin root. **Run `npm install` from the repo root**
 
 **The web client uses Tailwind v4 + shadcn/ui.** Add components with `npx shadcn@latest add <name>` from `shelf-web-client`; they land in `src/components/ui` and import through the `@/` alias (declared in both `vite.config.ts` and `tsconfig.app.json` — keep the two in sync). Tailwind is configured CSS-first in `src/index.css`; there is no `tailwind.config.js`. The shadcn tokens there are named `--border-token`/`--accent-token`/`--muted-token` because the pre-shadcn pages (`Shelf`, `NotFound`) still use the hand-rolled `--border`/`--accent`/`--muted` variables further down the same file. Do not collapse the two sets until those pages are ported.
 
+**The legacy element selectors in `index.css` are inside `@layer base` and scoped `:not([data-slot])` — keep them that way.** Unlayered CSS outranks everything in `@layer utilities`, so as bare top-level rules `button {}` and `input {}` silently beat the Tailwind classes on every shadcn component: a `SelectTrigger` came out with `background: var(--bg)` and a dialog's text inherited `var(--fg)`, both of which are *dark-mode* values, because `--bg`/`--fg` follow `prefers-color-scheme` while the shadcn tokens key off a `.dark` class nothing sets. Every shadcn primitive tags itself with a `data-slot` attribute, which is what the `:not()` keys off. Until `Shelf`/`NotFound` are ported, that mismatch is live — a page built from shadcn components renders light while those two render dark on the same machine.
+
 ## API contract — do not break
 
 - `countsByStatus` always has all four statuses; a status with no rows is `0`, never absent.

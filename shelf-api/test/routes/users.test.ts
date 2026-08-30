@@ -21,9 +21,18 @@ describe("contract", () => {
   });
 
   it("registers exactly the expected routes", () => {
-    const tree = app.printRoutes();
-    expect(tree).toContain("health");
-    expect(tree).toContain("users");
+    // Autoload derives the prefix from the directory path. hasRoute rather than
+    // a printRoutes() substring — the radix tree collapses shared prefixes
+    // (/api/users and /api/user-reads render as "api/user" + "s"/"-reads").
+    expect(app.hasRoute({ method: "GET", url: "/health" })).toBe(true);
+    expect(app.hasRoute({ method: "GET", url: "/api/users" })).toBe(true);
+    expect(app.hasRoute({ method: "POST", url: "/api/users" })).toBe(true);
+    expect(app.hasRoute({ method: "GET", url: "/api/users/:username" })).toBe(
+      true,
+    );
+    expect(
+      app.hasRoute({ method: "GET", url: "/api/users/:username/books" }),
+    ).toBe(true);
   });
 });
 
@@ -133,10 +142,24 @@ describe("GET /api/users/:username/books", () => {
     expect(body).toHaveLength(4);
     expect(Object.keys(body[0]).sort()).toEqual([
       "author",
+      "cover",
       "id",
       "status",
       "title",
     ]);
+  });
+
+  it("exposes a cover URL for every book", async () => {
+    const res = await app.inject({
+      method: "GET",
+      url: "/api/users/duy/books",
+    });
+
+    // `cover` is nullable by contract (a book with no art), but the seed books
+    // are all backfilled, so every one of them should carry a real URL here.
+    for (const book of res.json()) {
+      expect(book.cover).toEqual(expect.stringContaining("http"));
+    }
   });
 
   it("orders by updatedAt descending", async () => {

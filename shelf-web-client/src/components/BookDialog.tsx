@@ -5,7 +5,6 @@ import {
   type ShelfBook,
 } from "@shelf-watch/shared";
 import { useEffect, useState } from "react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -27,6 +26,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import BookCover from "./BookCover";
+import StatusBadge from "./StatusBadge";
 
 /**
  * PLACEHOLDER. There is no started-reading date in the schema — `UserRead`
@@ -131,7 +131,7 @@ export default function BookDialog({
               </div>
 
               <div>
-                <Badge variant="secondary">{STATUS_LABELS[book.status]}</Badge>
+                <StatusBadge status={book.status} />
               </div>
 
               {/* Placeholder data — see fakeStartedReading above. */}

@@ -52,9 +52,36 @@ export type ShelfBook = {
   cover: string | null;
 };
 
-/** Body of `PATCH /api/users/:username/books/:bookId`. */
+/** Body of `PATCH /api/user-reads`. */
 export type UpdateReadStatusBody = {
+  userId: number;
+  bookId: number;
   status: ReadStatus;
+};
+
+/**
+ * One `user_read` row — a single book on one user's shelf, plus its current
+ * status. This is exactly what `PATCH /api/user-reads` returns: the read
+ * record only, never book fields like `title` or `author`. Those live on the
+ * immutable `book` row and never change under a status edit.
+ *
+ * `createdAt` / `updatedAt` are ISO strings, like `User.createdAt` — JSON has
+ * no Date type.
+ */
+export type UserRead = {
+  /** The `user_read` row id — NOT the book id. The book is `bookId`. */
+  id: number;
+  userId: number;
+  bookId: number;
+  status: ReadStatus;
+  /**
+   * Per-user cover override — the edition jacket this user picked, or `null`
+   * when they haven't and the book-level cover (`ShelfBook.cover`) applies.
+   * Nothing sets this yet, so in practice it is always `null` today.
+   */
+  cover: string | null;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type Shelf = ShelfSummary & {

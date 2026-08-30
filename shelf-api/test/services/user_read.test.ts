@@ -94,14 +94,24 @@ describe("updateReadStatus", () => {
     expect(persisted?.status).toBe("READING");
   });
 
-  it("returns Date objects for the timestamps, not ISO strings", async () => {
-    // schema.ts declares both columns `{ mode: "date" }`; the service does no
-    // normalisation, so callers get Date. (The PATCH route leaves this to
-    // Fastify's JSON serialiser — see the route suite.)
+  it("returns the shared UserRead shape — ISO string timestamps, cover normalised", async () => {
+    // The service converts the raw row (Date columns, NOT NULL cover) to the
+    // `@shelf-watch/shared` contract shape before returning.
     const { userId, bookId } = await makeRead("TBR");
     const updated = await updateReadStatus({ userId, bookId, status: "DNF" });
-    expect(updated!.createdAt).toBeInstanceOf(Date);
-    expect(updated!.updatedAt).toBeInstanceOf(Date);
+    expect(Object.keys(updated!).sort()).toEqual([
+      "bookId",
+      "cover",
+      "createdAt",
+      "id",
+      "status",
+      "updatedAt",
+      "userId",
+    ]);
+    expect(updated!.createdAt).toBe(new Date(updated!.createdAt).toISOString());
+    expect(updated!.updatedAt).toBe(new Date(updated!.updatedAt).toISOString());
+    // makeRead seeds cover with a real URL; an empty string would come back null.
+    expect(updated!.cover).toBe("https://example.com/covers/owned.jpg");
   });
 
   it("bumps updatedAt past the original", async () => {
@@ -109,7 +119,7 @@ describe("updateReadStatus", () => {
     // $onUpdate fires on every .update(), so even a no-op status change moves
     // updatedAt.
     const updated = await updateReadStatus({ userId, bookId, status: "TBR" });
-    expect(updated!.updatedAt.getTime()).toBeGreaterThanOrEqual(
+    expect(new Date(updated!.updatedAt).getTime()).toBeGreaterThanOrEqual(
       read.updatedAt.getTime(),
     );
   });

@@ -4,6 +4,7 @@ import type {
   ShelfSummary,
   UpdateReadStatusBody,
   User,
+  UserRead,
 } from "@shelf-watch/shared";
 
 // Empty default = same-origin, which the Vite dev proxy handles locally.
@@ -54,20 +55,20 @@ export const getShelfBooks = (username: string) =>
 /**
  * Moves one book on a shelf to a different read status.
  *
- * NOTE: the API route this calls does not exist yet — it 404s until
- * `PATCH /api/users/:username/books/:bookId` is implemented. The dialog
- * surfaces the failure inline rather than pretending the change stuck, so
- * this is safe to ship ahead of the endpoint.
+ * Returns the `user_read` row only — no book fields. The caller merges the new
+ * `status` into the book it already holds (matched on `bookId`); `title` and
+ * `author` come from the immutable `book` row and never change here.
  */
 export const updateBookStatus = (
-  username: string,
+  userId: number,
   bookId: number,
   status: ReadStatus,
 ) =>
-  request<ShelfBook>(
-    `/api/users/${encodeURIComponent(username)}/books/${bookId}`,
-    {
-      method: "PATCH",
-      body: JSON.stringify({ status } satisfies UpdateReadStatusBody),
-    },
-  );
+  request<UserRead>("/api/user-reads", {
+    method: "PATCH",
+    body: JSON.stringify({
+      userId,
+      bookId,
+      status,
+    } satisfies UpdateReadStatusBody),
+  });

@@ -64,19 +64,24 @@ export default function User() {
   );
 
   /**
-   * Persists first, then updates local state from the row the API echoes back
-   * — no optimistic update, so a rejected change never briefly appears to have
-   * worked. Throwing propagates to the dialog, which shows the message inline.
+   * Persists first, then folds the returned `user_read` row's new status into
+   * the book already in hand — no optimistic update, so a rejected change
+   * never briefly appears to have worked. Only `status` changes; `title` and
+   * `author` come from the immutable book row. Throwing propagates to the
+   * dialog, which shows the message inline.
    */
   async function handleSave(book: ShelfBook, next: ReadStatus) {
     if (!data) return;
 
-    const saved = await updateBookStatus(data.user.username, book.id, next);
+    const saved = await updateBookStatus(data.user.id, book.id, next);
 
     setData((current) => {
       if (!current) return current;
       const books = current.books.map((candidate) =>
-        candidate.id === saved.id ? saved : candidate,
+        // `saved.id` is the user_read row id — match on the book id instead.
+        candidate.id === saved.bookId
+          ? { ...candidate, status: saved.status }
+          : candidate,
       );
       return {
         ...current,

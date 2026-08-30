@@ -106,13 +106,23 @@ describe("PATCH /api/user-reads — validation", () => {
 });
 
 describe("PATCH /api/user-reads — updates", () => {
-  it("updates an existing read and echoes the row back", async () => {
+  it("updates an existing read and echoes back the user_read row (no book fields)", async () => {
     const { userId, bookId } = await makeRead("TBR");
 
     const res = await patch({ userId, bookId, status: "READING" });
 
     expect(res.statusCode).toBe(200);
     expect(res.json()).toMatchObject({ userId, bookId, status: "READING" });
+    // The shared UserRead shape — read record only, never title/author.
+    expect(Object.keys(res.json()).sort()).toEqual([
+      "bookId",
+      "cover",
+      "createdAt",
+      "id",
+      "status",
+      "updatedAt",
+      "userId",
+    ]);
   });
 
   it("serialises the timestamps as ISO strings, with updatedAt bumped", async () => {
@@ -137,12 +147,12 @@ describe("PATCH /api/user-reads — updates", () => {
     expect(res2.json().status).toBe("DNF");
   });
 
-  it.fails(
-    "should 404 when no user_read row matches — currently returns 201 with a null body",
-    async () => {
-      const { userId } = await makeRead("TBR");
-      const res = await patch({ userId, bookId: 2_000_000_000, status: "TBR" });
-      expect(res.statusCode).toBe(404);
-    },
-  );
+  it("404s with the standard envelope when no user_read row matches", async () => {
+    const { userId } = await makeRead("TBR");
+    const res = await patch({ userId, bookId: 2_000_000_000, status: "TBR" });
+    expect(res.statusCode).toBe(404);
+    expect(res.json()).toEqual({
+      error: `User ${userId} did not read book 2000000000`,
+    });
+  });
 });

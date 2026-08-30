@@ -1,7 +1,7 @@
-import { STATUS_LABELS, type ShelfBook } from "@shelf-watch/shared";
-import { Badge } from "@/components/ui/badge";
+import type { ShelfBook } from "@shelf-watch/shared";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import BookCover from "./BookCover";
+import StatusBadge from "./StatusBadge";
 
 /**
  * One book on a shelf. Shared so the shelf page can drop the hand-rolled
@@ -39,7 +39,7 @@ export default function BookCard({
           <p className="text-xs text-muted-foreground">{book.author}</p>
         </CardHeader>
         <CardContent className="px-4">
-          <Badge variant="secondary">{STATUS_LABELS[book.status]}</Badge>
+          <StatusBadge status={book.status} />
         </CardContent>
       </Card>
     </button>
